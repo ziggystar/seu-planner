@@ -118,8 +118,9 @@ function App() {
             (tab === 4 &&
               <Optimizer
                 selectedScenarioId={selectedScenarioId}
-                schools={kidsPerSchool.map((s) => ({master: schools.find((sm) => sm.id === s[0])!, children: s[1]}))}
-                employees={kidsPerEmployee.map((e) => ({master: personnel.find((em) => em.id === e[0])!, minChildren: e[1].min, maxChildren: e[1].max}))}
+                /* we need to include all items from the master arrays, because the distance matrix is based on them */
+                schools={schools.map((s) => ({ master: s, children: kidsPerSchool.find((sm) => sm[0] === s.id)?.[1] ?? 0 }))}
+                employees={personnel.map((e) => ({ master: e, minChildren: kidsPerEmployee.find((em) => em[0] === e.id)?.[1].min ?? 0, maxChildren: kidsPerEmployee.find((em) => em[0] === e.id)?.[1].max ?? 0}))}
                 distances={distances.data} />)
           }
         </Container>

@@ -3,7 +3,7 @@ import GLPKConstructor, { GLPK, Result, LP } from 'glpk.js';
 import { useEffect, useState } from 'react';
 import { ComposableMap, Geographies, Geography, Line } from 'react-simple-maps';
 import { Employee, School } from './types';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import React from 'react';
 
 
@@ -97,6 +97,7 @@ export function Optimizer(props: {
         })
     }
 
+    //solution table has one row per variable
     const solutionTable = function (sol: Result, dist: number[][]) {
         // Prepare the rows data
         const rows = props.employees.map((e, id) =>
@@ -111,26 +112,69 @@ export function Optimizer(props: {
 
         // Prepare the columns data
         const columns = [
-            { field: 'school', headerName: 'Schule', width: 150 },
-            { field: 'employee', headerName: 'Mitarbeiter', width: 150 },
-            { field: 'children', headerName: 'Kinder', width: 150 },
-            { field: 'distance', headerName: 'Entfernung', width: 150 },
+            { field: 'school', headerName: 'Schule', width: 350 },
+            { field: 'employee', headerName: 'Mitarbeiter', width: 200 },
+            { field: 'children', headerName: 'Kinder', width: 100 },
+            { field: 'distance', headerName: 'Entfernung', width: 100 },
         ];
 
-        return <DataGrid rows={rows} columns={columns}/>
+        return <DataGrid rows={rows} columns={columns} slots={{ toolbar: GridToolbar }} rowSelection={false} />
+    }
+
+    //employee table has one row per employee, showing total number of children and average distance per child
+    const employeeTable = function (sol: Result, dist: number[][]) {
+        // Prepare the rows data
+        const rows = props.employees.map((e, id) => {
+            const children = props.schools.map((s, id2) => sol.result.vars[makeVar(s, e)]).reduce((a, b) => a + b, 0);
+            const distance = props.schools.map((s, id2) => sol.result.vars[makeVar(s, e)] * dist[id2][id]).reduce((a, b) => a + b, 0);
+            return {
+                id: e.master.id, // unique id for each row
+                employee: e.master.id,
+                minChilren: e.minChildren,
+                maxChildren: e.maxChildren,
+                children: children,
+                avgDistance: (distance / children).toFixed(1),
+                status: { min: e.minChildren, max: e.maxChildren, children: children }
+            }
+        });
+
+        // Prepare the columns data
+        const columns: GridColDef[] = [
+            { field: 'employee', headerName: 'Mitarbeiter', width: 200 },
+            { field: 'minChilren', headerName: 'Min', width: 100 },
+            { field: 'maxChildren', headerName: 'Max', width: 100 },
+            { field: 'children', headerName: 'Kinder', width: 100 },
+            { field: 'avgDistance', headerName: 'Entfernung/Kind', width: 100 },
+            //show a slider that illustrates where the assigned number of children is in the range
+            {
+                field: 'status',
+                headerName: 'Status',
+                width: 200,
+                renderCell: (params) => {
+                    const status = params.value as { min: number, max: number, children: number };
+                    return <input type="range" min={status.min} max={status.max} value={status.children} disabled={true} />
+                }
+            }
+        ];
+
+        return <DataGrid rows={rows} columns={columns} slots={{ toolbar: GridToolbar }} rowSelection={false} />
     }
 
     return <Grid container>
-        <Grid item xs={2}>
+        <Grid item xs={12}>
             {<p>{props.selectedScenarioId}</p>}
             <Button disabled={glpk === undefined || problem === undefined} onClick={() => { problem && glpk && solve(glpk, problem) }}>Optimiere</Button>
         </Grid>
-        <Grid item xs={10}>
+        <Grid item xs={12}>
             {solution && <div>
                 <h2>Optimierungsergebnis</h2>
                 <p>Optimal: {solution.result.status}</p>
                 <p>Zeit: {solution.time}</p>
-                <h3>Lösung</h3>
+                <h3>Übersicht Personal</h3>
+                <Button disabled={true}>Kopieren</Button>
+                {employeeTable(solution, props.distances)}
+                <h3>Vollständige Zuweisung</h3>
+                <Button disabled={true}>Kopieren</Button>
                 {solutionTable(solution, props.distances)}
             </div>}
         </Grid>
