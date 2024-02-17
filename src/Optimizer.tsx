@@ -97,8 +97,6 @@ export function Optimizer(props: {
         })
     }
 
-    const [selectedRow, setSelectedRow] = useState<[string,string] | undefined>(undefined)
-
     const solutionTable = function (sol: Result, dist: number[][]) {
         // Prepare the rows data
         const rows = props.employees.map((e, id) =>

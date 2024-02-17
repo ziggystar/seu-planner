@@ -68,11 +68,9 @@ function App() {
   //active scenario
   const [selectedScenarioId, setSelectedScenarioId] = useLocalStorage<string | undefined>("selectedScenario", undefined);
 
-  const [kidsPerSchool, setKidsPerSchool] = useLocalStorage<[string, number][]>(`scenario.${selectedScenarioId}.kidsPerSchool`, [])
-  const [kidsPerEmployee, setkidsPerEmployee] = useLocalStorage<[string, { min: number, max: number }][]>(`scenario.${selectedScenarioId}.kidsPerEmployee`, []);
+  const [kidsPerSchool] = useLocalStorage<[string, number][]>(`scenario.${selectedScenarioId}.kidsPerSchool`, [])
+  const [kidsPerEmployee] = useLocalStorage<[string, { min: number, max: number }][]>(`scenario.${selectedScenarioId}.kidsPerEmployee`, []);
 
-  const schoolMap = new Map(schools.map((s) => [s.id, s]))
-  const employeeMap = new Map(personnel.map((p) => [p.id, p]))
   return (
     <div className="App">
       <header className="App-header">

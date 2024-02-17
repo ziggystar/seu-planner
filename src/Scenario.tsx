@@ -3,6 +3,7 @@ import './Scenario.css';
 import { DataGrid } from '@mui/x-data-grid';
 import { useLocalStorage } from 'usehooks-ts';
 import { useState } from 'react';
+import React from 'react';
 
 export type Assignment = {
     employeeId: string,
