@@ -48,7 +48,6 @@ export function ScenarioManager(props: {
     const cbReadSchools = function (text: string) {
         const rows = text.split("\n").map((row) => row.split("\t"));
         const imported = rows.filter((row) => row[1] !== "0" && row[0] !== "").map((row) => [row[0], parseInt(row[1])] as [string, number]);
-        const discarded = rows.filter((row) => row[0] === "");
         setKidsPerSchool(imported);
         setMessage(`${imported.length} Schulen aus Zwischenablage eingefügt`)
     }

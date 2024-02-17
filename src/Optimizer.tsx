@@ -1,9 +1,10 @@
 import { Button, Grid } from '@mui/material';
 import GLPKConstructor, { GLPK, Result, LP } from 'glpk.js';
 import { useEffect, useState } from 'react';
-import { ComposableMap, Geographies, Geography, Line, Marker } from 'react-simple-maps';
+import { ComposableMap, Geographies, Geography, Line } from 'react-simple-maps';
 import { Employee, School } from './types';
 import { DataGrid } from '@mui/x-data-grid';
+import React from 'react';
 
 
 export function Optimizer(props: {
@@ -79,7 +80,7 @@ export function Optimizer(props: {
                         props.employees.map((e) => ({
                             name: `emp_eq_${e.master.id}`,
                             vars: props.schools.map((s) => ({ name: makeVar(s, e), coef: 1 })),
-                            bnds: { type: glpk.GLP_UP, lb: e.minChildren, ub: e.maxChildren }
+                            bnds: { type: glpk.GLP_DB, lb: e.minChildren, ub: e.maxChildren }
                         }))
                     )
             }
@@ -118,7 +119,7 @@ export function Optimizer(props: {
             { field: 'distance', headerName: 'Entfernung', width: 150 },
         ];
 
-        return <DataGrid rows={rows} columns={columns} onRowClick={}/>
+        return <DataGrid rows={rows} columns={columns}/>
     }
 
     return <Grid container>
