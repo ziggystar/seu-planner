@@ -12,6 +12,7 @@ import { GridColDef } from '@mui/x-data-grid';
 import { Container } from '@mui/material';
 import { Optimizer } from './Optimizer';
 import { School, Employee, EmployeeType } from './types';
+import { Settings, SettingsEditor } from './Settings';
 
 
 function parseSchoolCsvRow(row: string[]): School {
@@ -33,6 +34,9 @@ function App() {
   //state for displayed tab
   const [tab, setTab] = React.useState(0);
 
+  //settings
+  const [settings, setSettings] = useLocalStorage<Settings>("settings", { openRoutServiceKey: undefined });
+
   //master data for schools
   const [schools, setSchools] = useLocalStorage<School[]>("school.master.data", []);
   //master data for personnel
@@ -44,7 +48,7 @@ function App() {
 
   const distances = distancesCalculated
     ? _distances
-    : { dim1: schools.map(s => [s.lon, s.lat] as [number, number]), dim2: personnel.map(p => [p.lon, p.lat] as [number, number]), data: schools.map(s => personnel.map(p => 0))};
+    : { dim1: schools.map(s => [s.lon, s.lat] as [number, number]), dim2: personnel.map(p => [p.lon, p.lat] as [number, number]), data: schools.map(s => personnel.map(p => 0)) };
 
   //column def for school table
   const schoolColumns: GridColDef[] = [
@@ -83,6 +87,7 @@ function App() {
           <Tab label={distancesCalculated ? "Entfernungen" : "Entferungen (m)"} />
           <Tab label="Szenarien" />
           <Tab label="Optimierung" disabled={selectedScenarioId === undefined} />
+          <Tab label="Einstellungen" />
         </Tabs>
         <Container maxWidth="xl">
           {
@@ -103,10 +108,11 @@ function App() {
               coords={(row) => [row.lon, row.lat]}
               mapColor={(e) => e.type === "Arzt" ? "#37a" : "#a73"} />) ||
             (tab === 2 && <DistanceComp
-              d1={schools.map(s => [s.id, s.lat, s.lon])}
-              d2={personnel.map(p => [p.id, p.lat, p.lon])}
+              d1={schools.map(s => [s.id, [s.lon, s.lat]])}
+              d2={personnel.map(p => [p.id, [p.lon, p.lat]])}
               data={distances}
-              setDistances={setDistances} />) ||
+              setDistances={setDistances} 
+              orsApiKey={settings.openRoutServiceKey}/>) ||
             (tab === 3 &&
               <ScenarioManager
                 schools={schools.map(s => [s.id, s.name])}
@@ -120,8 +126,10 @@ function App() {
                 selectedScenarioId={selectedScenarioId}
                 /* we need to include all items from the master arrays, because the distance matrix is based on them */
                 schools={schools.map((s) => ({ master: s, children: kidsPerSchool.find((sm) => sm[0] === s.id)?.[1] ?? 0 }))}
-                employees={personnel.map((e) => ({ master: e, minChildren: kidsPerEmployee.find((em) => em[0] === e.id)?.[1].min ?? 0, maxChildren: kidsPerEmployee.find((em) => em[0] === e.id)?.[1].max ?? 0}))}
-                distances={distances.data} />)
+                employees={personnel.map((e) => ({ master: e, minChildren: kidsPerEmployee.find((em) => em[0] === e.id)?.[1].min ?? 0, maxChildren: kidsPerEmployee.find((em) => em[0] === e.id)?.[1].max ?? 0 }))}
+                distances={distances.data} />) ||
+            (tab === 5 &&
+              <SettingsEditor settings={settings} setSettings={setSettings}/>)
           }
         </Container>
       </main>
