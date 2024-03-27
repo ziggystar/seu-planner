@@ -9,17 +9,10 @@ export type MyGridProps<T extends GridValidRowModel> = {
     getId: (row: T) => string,
     columns: GridColDef<T>[],
     updateFromCSV?: (rows: string[][]) => void,
-    asCSV?: string[][]
+    asCSV?: {data: string[][], name: string}
 }
 
 
-function Toolbar() {
-    return (
-        <GridToolbarContainer>
-            <GridToolbarExport />
-        </GridToolbarContainer>
-    );
-}
 export function MyGrid<T extends GridValidRowModel>(props: MyGridProps<T>) {
     const [uploadDialogOpen, setUploadDialogOpen] = React.useState(false);
     //function to show dialog
@@ -27,17 +20,19 @@ export function MyGrid<T extends GridValidRowModel>(props: MyGridProps<T>) {
     const [fileContent, setFileContent] = React.useState<string | undefined>();
 
     function parseCsvRow(input: string) {
-        const parser = new TSV.Parser(",", { header: false });
+        const parser = new TSV.Parser("\t", { header: false });
         const data = parser.parse(input.replace(/\r\n/g, "\n"));
         props.updateFromCSV?.(data);
     }
 
-    var csvData = new Blob([(props.asCSV ?? []).map((r) => r.join(',')).join('\n')], {type: 'text/csv'});
+    var csvData = new Blob([(props.asCSV?.data ?? []).map((r) => r.join('\t')).join('\n')], {type: 'text/csv'});
     var csvURL = window.URL.createObjectURL(csvData);
 
     return <div>
+        {props.asCSV !== undefined && 
+            <Button href={csvURL} download={props.asCSV.name}>Download</Button>
+            }
         <Button onClick={() => setUploadDialogOpen(true)}>Upload</Button>
-        {props.asCSV !== undefined && <Button href={csvURL}>Download</Button>}
         <Dialog open={uploadDialogOpen} onClose={() => setUploadDialogOpen(false)}>
             <DialogTitle>Upload CSV</DialogTitle>
             <DialogContent>
@@ -60,7 +55,6 @@ export function MyGrid<T extends GridValidRowModel>(props: MyGridProps<T>) {
         <DataGrid<T>
             rows={props.data}
             columns={props.columns}
-            slots={{ toolbar: Toolbar }}
         />
     </div>
 }

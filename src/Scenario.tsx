@@ -111,7 +111,7 @@ export function ScenarioManager(props: {
                             { field: 'kids', headerName: 'Kinder', width: 250 }
                         ]}
                         updateFromCSV={cbReadSchools}
-                        asCSV={props.schools.map(s => [s[0], (kidsPerSchool.get(s[0]) || 0).toString()])}
+                        asCSV={{data: props.schools.map(s => [s[0], (kidsPerSchool.get(s[0]) || 0).toString()]), name: `schulen-${props.selectedScenarioId}.csv`}}
                     />
                 </Grid>
                 <Grid item xs={6}>
@@ -124,7 +124,7 @@ export function ScenarioManager(props: {
                             { field: 'max', headerName: 'Max', width: 150 }
                         ]}
                         updateFromCSV={cbReadEmpl}
-                        asCSV={props.employees.map(e => [e[0], (kidsPerEmployee.get(e[0])?.min || 0).toString(), (kidsPerEmployee.get(e[0])?.max || 0).toString()])}
+                        asCSV={{data: props.employees.map(e => [e[0], (kidsPerEmployee.get(e[0])?.min || 0).toString(), (kidsPerEmployee.get(e[0])?.max || 0).toString()]), name: `personal-${props.selectedScenarioId}.csv`}}
                     />
                 </Grid>
             </>
