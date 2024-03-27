@@ -5,13 +5,15 @@ import { ComposableMap, Geographies, Geography, Line } from 'react-simple-maps';
 import { Employee, School } from './types';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import React from 'react';
+import { ModelType } from './Settings';
 
 
 export function Optimizer(props: {
     selectedScenarioId: string | undefined,
     schools: { master: School, children: number }[],
     employees: { master: Employee, minChildren: number, maxChildren: number }[],
-    distances: number[][]
+    distances: number[][],
+    modelType: ModelType
 }) {
     const [glpk, setGlpk] = useState<GLPK | undefined>(undefined)
 

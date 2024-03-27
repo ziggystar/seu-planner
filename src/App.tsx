@@ -14,16 +14,18 @@ import { Optimizer } from './Optimizer';
 import { School, Employee, EmployeeType } from './types';
 import { Settings, SettingsEditor } from './Settings';
 
+function str2float(str: string): number {
+  return parseFloat(str.replace(",", "."));
+}
 
 function parseSchoolCsvRow(row: string[]): School {
   const [id, name, lon, lat] = row;
-  return { id, name, lon: parseFloat(lon), lat: parseFloat(lat) };
+  return { id, name, lon:str2float(lon), lat: str2float(lat) };
 }
-
 
 function parseEmployeeCsvRow(row: string[]): Employee {
   const [id, name, lon, lat, type] = row;
-  return { id, name, lon: parseFloat(lon), lat: parseFloat(lat), type: type as EmployeeType };
+  return { id, name, lon: str2float(lon), lat: str2float(lat), type: type as EmployeeType };
 }
 
 function jsonEq(a: any, b: any) {
@@ -35,7 +37,7 @@ function App() {
   const [tab, setTab] = React.useState(0);
 
   //settings
-  const [settings, setSettings] = useLocalStorage<Settings>("settings", { openRoutServiceKey: undefined });
+  const [settings, setSettings] = useLocalStorage<Settings>("settings", { openRoutServiceKey: undefined, modelType: "AssignChildren"});
 
   //master data for schools
   const [schools, setSchools] = useLocalStorage<School[]>("school.master.data", []);
@@ -127,7 +129,8 @@ function App() {
                 /* we need to include all items from the master arrays, because the distance matrix is based on them */
                 schools={schools.map((s) => ({ master: s, children: kidsPerSchool.find((sm) => sm[0] === s.id)?.[1] ?? 0 }))}
                 employees={personnel.map((e) => ({ master: e, minChildren: kidsPerEmployee.find((em) => em[0] === e.id)?.[1].min ?? 0, maxChildren: kidsPerEmployee.find((em) => em[0] === e.id)?.[1].max ?? 0 }))}
-                distances={distances.data} />) ||
+                distances={distances.data} 
+                modelType={settings.modelType}/>) ||
             (tab === 5 &&
               <SettingsEditor settings={settings} setSettings={setSettings}/>)
           }
