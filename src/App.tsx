@@ -12,7 +12,7 @@ import { GridColDef } from '@mui/x-data-grid';
 import { Container } from '@mui/material';
 import { Optimizer } from './Optimizer';
 import { School, Employee, EmployeeType } from './types';
-import { Settings, SettingsEditor } from './Settings';
+import { Settings, SettingsEditor, getDefaultSettings } from './Settings';
 
 function str2float(str: string): number {
   return parseFloat(str.replace(",", "."));
@@ -37,7 +37,7 @@ function App() {
   const [tab, setTab] = React.useState(0);
 
   //settings
-  const [settings, setSettings] = useLocalStorage<Settings>("settings", { openRoutServiceKey: undefined, modelType: "AssignChildren"});
+  const [settings, setSettings] = useLocalStorage<Settings>("settings", getDefaultSettings());
 
   //master data for schools
   const [schools, setSchools] = useLocalStorage<School[]>("school.master.data", []);
@@ -100,7 +100,8 @@ function App() {
               parseCsvRow={parseSchoolCsvRow}
               getId={(row) => row.id}
               coords={(row) => [row.lon, row.lat]}
-              mapColor="#666" />) ||
+              mapColor="#666"
+              settings={settings} />) ||
             (tab === 1 && <CrudTab<Employee>
               data={personnel}
               columns={personnelColumns}
@@ -108,7 +109,8 @@ function App() {
               parseCsvRow={parseEmployeeCsvRow}
               getId={(row) => row.id}
               coords={(row) => [row.lon, row.lat]}
-              mapColor={(e) => e.type === "Arzt" ? "#37a" : "#a73"} />) ||
+              mapColor={(e) => e.type === "Arzt" ? "#37a" : "#a73"}
+              settings={settings} />) ||
             (tab === 2 && <DistanceComp
               d1={schools.map(s => [s.id, [s.lon, s.lat]])}
               d2={personnel.map(p => [p.id, [p.lon, p.lat]])}
@@ -122,7 +124,8 @@ function App() {
                 scenarios={scenarios}
                 setScenarios={setScenarios}
                 selectedScenarioId={selectedScenarioId}
-                setSelectedScenarioId={setSelectedScenarioId} />) ||
+                setSelectedScenarioId={setSelectedScenarioId}
+                settings={settings} />) ||
             (tab === 4 &&
               <Optimizer
                 selectedScenarioId={selectedScenarioId}

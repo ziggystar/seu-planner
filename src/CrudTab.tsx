@@ -3,6 +3,7 @@ import TSV from 'tsv';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import { Grid } from '@mui/material';
+import { Settings } from './Settings';
 
 export type ColumnDef<T> = {
     name: string,
@@ -16,7 +17,8 @@ export function CrudTab<T>(props: {
     columns: GridColDef[],
     getId: (row: T) =>  string,
     coords: (row: T) => [number, number],
-    mapColor: string | ((row: T) => string)
+    mapColor: string | ((row: T) => string),
+    settings: Settings
 }) {
 
     return <Grid container rowSpacing={1} columnSpacing={1}>
@@ -27,7 +29,7 @@ export function CrudTab<T>(props: {
                     const reader = new FileReader();
                     reader.onload = event => {
                         if (event.target) {
-                            const parser = new TSV.Parser("\t", { header: false });
+                            const parser = new TSV.Parser(props.settings.csvSeparator, { header: false });
                             const data = parser.parse(event.target.result as string);
                             const newData = data.map(props.parseCsvRow);
                             props.updateAll(newData);

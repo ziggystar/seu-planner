@@ -4,6 +4,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { useLocalStorage } from 'usehooks-ts';
 import { useState } from 'react';
 import { MyGrid } from './MyGrid';
+import { Settings } from './Settings';
 
 export type Assignment = {
     employeeId: string,
@@ -29,7 +30,8 @@ export function ScenarioManager(props: {
     scenarios: Scenario[],
     setScenarios: (scenarios: Scenario[]) => void,
     selectedScenarioId: string | undefined,
-    setSelectedScenarioId: (scenario: string | undefined) => void
+    setSelectedScenarioId: (scenario: string | undefined) => void,
+    settings: Settings
 }) {
 
     const [message, setMessage] = useState<string | undefined>(undefined);
@@ -112,6 +114,7 @@ export function ScenarioManager(props: {
                         ]}
                         updateFromCSV={cbReadSchools}
                         asCSV={{data: props.schools.map(s => [s[0], (kidsPerSchool.get(s[0]) || 0).toString()]), name: `schulen-${props.selectedScenarioId}.csv`}}
+                        settings={props.settings}
                     />
                 </Grid>
                 <Grid item xs={6}>
@@ -125,6 +128,7 @@ export function ScenarioManager(props: {
                         ]}
                         updateFromCSV={cbReadEmpl}
                         asCSV={{data: props.employees.map(e => [e[0], (kidsPerEmployee.get(e[0])?.min || 0).toString(), (kidsPerEmployee.get(e[0])?.max || 0).toString()]), name: `personal-${props.selectedScenarioId}.csv`}}
+                        settings={props.settings}
                     />
                 </Grid>
             </>
