@@ -6,6 +6,8 @@ import { useState } from 'react';
 import { MyGrid } from './MyGrid';
 import { Settings } from './Settings';
 import { Employee } from './types';
+import { Table, TableBody, TableCell, TableContainer, TableRow, TableHead } from '@mui/material';
+import { Card, CardHeader } from '@mui/material';
 
 export type Assignment = {
     employeeId: string,
@@ -55,6 +57,11 @@ export function ScenarioManager(props: {
         setMessage("Mitarbeiter aktualisiert")
     }
 
+    const nMinKidsAssistant = props.employees.filter((e) => e.type === 'Assistent').map(e => kidsPerEmployee.get(e.id)?.min || 0).reduce((acc, cur) => acc + cur, 0);
+    const nMaxKidsAssistant = props.employees.filter((e) => e.type === "Assistent").map(e => kidsPerEmployee.get(e.id)?.max || 0).reduce((acc, cur) => acc + cur, 0);
+    const nMinKidsArzt = props.employees.filter((e) => e.type === 'Arzt').map(e => kidsPerEmployee.get(e.id)?.min || 0).reduce((acc, cur) => acc + cur, 0);
+    const nMaxKidsArzt = props.employees.filter((e) => e.type === "Arzt").map(e => kidsPerEmployee.get(e.id)?.max || 0).reduce((acc, cur) => acc + cur, 0);
+    const nTotalKidsSchools = props.schools.map(s => kidsPerSchool.get(s[0]) || 0).reduce((acc, cur) => acc + cur, 0);
     return (<>
         <Snackbar
             anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
@@ -105,10 +112,38 @@ export function ScenarioManager(props: {
             </Grid>
             {props.selectedScenarioId !== undefined && <>
                 <Grid item xs={12}>
-                    <h2>{props.selectedScenarioId}</h2>
-                    <div>Kinder gesamt: {props.schools.map(s => kidsPerSchool.get(s[0]) || 0).reduce((acc, cur) => acc + cur, 0)}</div>
-                    <div>Kinder Assistent (min/max): {props.employees.filter((e) => e.type === 'Assistent').map(e => kidsPerEmployee.get(e.id)?.min || 0).reduce((acc, cur) => acc + cur, 0)} / {props.employees.filter((e) => e.type === "Assistent").map(e => kidsPerEmployee.get(e.id)?.max || 0).reduce((acc, cur) => acc + cur, 0)}</div>
-                    <div>Kinder Arzt (min/max): {props.employees.filter((e) => e.type === 'Arzt').map(e => kidsPerEmployee.get(e.id)?.min || 0).reduce((acc, cur) => acc + cur, 0)} / {props.employees.filter((e) => e.type === "Arzt").map(e => kidsPerEmployee.get(e.id)?.max || 0).reduce((acc, cur) => acc + cur, 0)}</div>
+
+                    <Card>
+                        <CardHeader title={`Übersicht Szenario '${props.selectedScenarioId}'`} />
+
+                        <TableContainer>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell></TableCell>
+                                        <TableCell>Min</TableCell>
+                                        <TableCell>Max</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    <TableRow>
+                                        <TableCell>Kinder gesamt</TableCell>
+                                        <TableCell colSpan={2}>{nTotalKidsSchools}</TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>Kinder Assistent</TableCell>
+                                        <TableCell style={{ color: nMinKidsAssistant > nTotalKidsSchools ? 'red' : 'inherit' }}>{nMinKidsAssistant}</TableCell>
+                                        <TableCell style={{ color: nMaxKidsAssistant < nTotalKidsSchools ? 'red' : 'inherit' }}>{nMaxKidsAssistant}</TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell>Kinder Arzt</TableCell>
+                                        <TableCell style={{ color: nMinKidsArzt > nTotalKidsSchools ? 'red' : 'inherit' }}>{nMinKidsArzt}</TableCell>
+                                        <TableCell style={{ color: nMaxKidsArzt < nTotalKidsSchools ? 'red' : 'inherit' }}>{nMaxKidsArzt}</TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Card>
                 </Grid>
                 <Grid item xs={6}>
                     <MyGrid<{ id: string, name: string, kids: number }>
@@ -119,7 +154,7 @@ export function ScenarioManager(props: {
                             { field: 'kids', headerName: 'Kinder', width: 250 }
                         ]}
                         updateFromCSV={cbReadSchools}
-                        asCSV={{data: props.schools.map(s => [s[0], (kidsPerSchool.get(s[0]) || 0).toString()]), name: `schulen-${props.selectedScenarioId}.csv`}}
+                        asCSV={{ data: props.schools.map(s => [s[0], (kidsPerSchool.get(s[0]) || 0).toString()]), name: `schulen-${props.selectedScenarioId}.csv` }}
                         settings={props.settings}
                     />
                 </Grid>
@@ -133,7 +168,7 @@ export function ScenarioManager(props: {
                             { field: 'max', headerName: 'Max', width: 150 }
                         ]}
                         updateFromCSV={cbReadEmpl}
-                        asCSV={{data: props.employees.map(e => [e.id, (kidsPerEmployee.get(e.id)?.min || 0).toString(), (kidsPerEmployee.get(e.id)?.max || 0).toString()]), name: `personal-${props.selectedScenarioId}.csv`}}
+                        asCSV={{ data: props.employees.map(e => [e.id, (kidsPerEmployee.get(e.id)?.min || 0).toString(), (kidsPerEmployee.get(e.id)?.max || 0).toString()]), name: `personal-${props.selectedScenarioId}.csv` }}
                         settings={props.settings}
                     />
                 </Grid>
