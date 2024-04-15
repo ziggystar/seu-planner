@@ -2,7 +2,7 @@ import React from 'react';
 import { DataGrid, GridColDef, GridValidRowModel } from '@mui/x-data-grid';
 import { Button, Dialog, DialogContent, DialogTitle } from '@mui/material';
 import TSV from 'tsv';
-import { Settings } from './Settings';
+import { Settings, getSepChar } from './Settings';
 
 
 export type MyGridProps<T extends GridValidRowModel> = {
@@ -22,12 +22,12 @@ export function MyGrid<T extends GridValidRowModel>(props: MyGridProps<T>) {
     const [fileContent, setFileContent] = React.useState<string | undefined>();
 
     function parseCsvRow(input: string) {
-        const parser = new TSV.Parser(props.settings.csvSeparator, { header: false });
+        const parser = new TSV.Parser(getSepChar(props.settings), { header: false });
         const data = parser.parse(input.replace(/\r\n/g, "\n"));
         props.updateFromCSV?.(data);
     }
 
-    var csvData = new Blob([(props.asCSV?.data ?? []).map((r) => r.join(props.settings.csvSeparator)).join('\n')], {type: 'text/csv'});
+    var csvData = new Blob([(props.asCSV?.data ?? []).map((r) => r.join(getSepChar(props.settings))).join('\n')], {type: 'text/csv'});
     var csvURL = window.URL.createObjectURL(csvData);
 
     return <div>

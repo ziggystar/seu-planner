@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { ComposableMap, Geographies, Geography, Line } from 'react-simple-maps';
 import { Employee, School } from './types';
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
-import React from 'react';
 import { ModelType } from './Settings';
 
 
@@ -82,7 +81,7 @@ export function Optimizer(props: {
                         props.employees.map((e) => ({
                             name: `emp_eq_${e.master.id}`,
                             vars: props.schools.map((s) => ({ name: makeVar(s, e), coef: 1 })),
-                            bnds: { type: glpk.GLP_DB, lb: e.minChildren, ub: e.maxChildren }
+                            bnds: e.minChildren < e.maxChildren ? { type: glpk.GLP_DB, lb: e.minChildren, ub: e.maxChildren } : { type: glpk.GLP_FX, lb: e.minChildren, ub: e.minChildren }
                         }))
                     )
             }

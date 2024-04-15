@@ -120,7 +120,7 @@ function App() {
             (tab === 3 &&
               <ScenarioManager
                 schools={schools.map(s => [s.id, s.name])}
-                employees={personnel.map(p => [p.id, p.name])}
+                employees={personnel}
                 scenarios={scenarios}
                 setScenarios={setScenarios}
                 selectedScenarioId={selectedScenarioId}

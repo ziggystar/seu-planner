@@ -5,6 +5,7 @@ import { useLocalStorage } from 'usehooks-ts';
 import { useState } from 'react';
 import { MyGrid } from './MyGrid';
 import { Settings } from './Settings';
+import { Employee } from './types';
 
 export type Assignment = {
     employeeId: string,
@@ -26,7 +27,7 @@ export type Scenario = {
 
 export function ScenarioManager(props: {
     schools: [string, string][],
-    employees: [string, string][],
+    employees: Employee[],
     scenarios: Scenario[],
     setScenarios: (scenarios: Scenario[]) => void,
     selectedScenarioId: string | undefined,
@@ -102,8 +103,13 @@ export function ScenarioManager(props: {
                     onRowClick={(row) => props.setSelectedScenarioId(row.row.id as string)}
                 />
             </Grid>
-            {/* data grid to edit the kids per school */}
             {props.selectedScenarioId !== undefined && <>
+                <Grid item xs={12}>
+                    <h2>{props.selectedScenarioId}</h2>
+                    <div>Kinder gesamt: {props.schools.map(s => kidsPerSchool.get(s[0]) || 0).reduce((acc, cur) => acc + cur, 0)}</div>
+                    <div>Kinder Assistent (min/max): {props.employees.filter((e) => e.type === 'Assistent').map(e => kidsPerEmployee.get(e.id)?.min || 0).reduce((acc, cur) => acc + cur, 0)} / {props.employees.filter((e) => e.type === "Assistent").map(e => kidsPerEmployee.get(e.id)?.max || 0).reduce((acc, cur) => acc + cur, 0)}</div>
+                    <div>Kinder Arzt (min/max): {props.employees.filter((e) => e.type === 'Arzt').map(e => kidsPerEmployee.get(e.id)?.min || 0).reduce((acc, cur) => acc + cur, 0)} / {props.employees.filter((e) => e.type === "Arzt").map(e => kidsPerEmployee.get(e.id)?.max || 0).reduce((acc, cur) => acc + cur, 0)}</div>
+                </Grid>
                 <Grid item xs={6}>
                     <MyGrid<{ id: string, name: string, kids: number }>
                         data={props.schools.map(s => ({ id: s[0], name: s[1], kids: kidsPerSchool.get(s[0]) || 0 }))}
@@ -119,7 +125,7 @@ export function ScenarioManager(props: {
                 </Grid>
                 <Grid item xs={6}>
                     <MyGrid<{ id: string, name: string, min: number, max: number }>
-                        data={props.employees.map(e => ({ id: e[0], name: e[1], min: kidsPerEmployee.get(e[0])?.min || 0, max: kidsPerEmployee.get(e[0])?.max || 0 }))}
+                        data={props.employees.map(e => ({ id: e.id, name: e.name, min: kidsPerEmployee.get(e.id)?.min || 0, max: kidsPerEmployee.get(e.id)?.max || 0 }))}
                         getId={(row) => row.id}
                         columns={[
                             { field: 'name', headerName: 'Personal', width: 350 },
@@ -127,7 +133,7 @@ export function ScenarioManager(props: {
                             { field: 'max', headerName: 'Max', width: 150 }
                         ]}
                         updateFromCSV={cbReadEmpl}
-                        asCSV={{data: props.employees.map(e => [e[0], (kidsPerEmployee.get(e[0])?.min || 0).toString(), (kidsPerEmployee.get(e[0])?.max || 0).toString()]), name: `personal-${props.selectedScenarioId}.csv`}}
+                        asCSV={{data: props.employees.map(e => [e.id, (kidsPerEmployee.get(e.id)?.min || 0).toString(), (kidsPerEmployee.get(e.id)?.max || 0).toString()]), name: `personal-${props.selectedScenarioId}.csv`}}
                         settings={props.settings}
                     />
                 </Grid>

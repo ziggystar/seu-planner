@@ -4,8 +4,12 @@ export type ModelType = "AssignChildren" | "AssignSchools";
 export type Settings = {
     openRoutServiceKey: string | undefined,
     modelType: ModelType,
-    csvSeparator: ";" | "\t",
+    csvSeparator: ";" | "TAB",
     csvDecimalSeparator: "," | "."
+}
+
+export function getSepChar(s: Settings): string {
+    return s.csvSeparator === ";" ? ";" : "\t";
 }
 
 export function getDefaultSettings(): Settings {
@@ -43,9 +47,9 @@ export function SettingsEditor({ settings, setSettings }: SettingsProps) {
                 </Select>
             </Grid>
             <Grid container item xs={12}>
-                <Select label="CSV-Separator" value={settings.csvSeparator} onChange={(e) => setSettings({ ...settings, csvSeparator: e.target.value as ";" | "\t" })}>
+                <Select label="CSV-Separator" value={settings.csvSeparator} onChange={(e) => setSettings({ ...settings, csvSeparator: e.target.value as ";" | "TAB" })}>
                     <MenuItem value=";">Semikolon</MenuItem>
-                    <MenuItem value="\t">Tabulator</MenuItem>
+                    <MenuItem value="TAB">Tabulator</MenuItem>
                 </Select>
             </Grid>
             <Grid container item xs={12}>
