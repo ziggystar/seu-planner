@@ -31,8 +31,15 @@ export function CrudTab<T>(props: {
                         if (event.target) {
                             const parser = new TSV.Parser(props.settings.csvSeparator, { header: false });
                             const data = parser.parse(event.target.result as string);
-                            const newData = data.map(props.parseCsvRow);
-                            props.updateAll(newData);
+                            const newData = data.filter((r) => !(r.length === 1 && r[0] === "")).map((r) => {
+                                try{
+                                    return props.parseCsvRow(r);
+                                } catch (e) {
+                                    console.error("Error parsing row", r, e);
+                                    return undefined;
+                                }
+                            });
+                            props.updateAll(newData.filter((r) => r !== undefined) as T[]);
                         }
                     }
                     reader.readAsText(file);

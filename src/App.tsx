@@ -20,7 +20,7 @@ function str2float(str: string): number {
 
 function parseSchoolCsvRow(row: string[]): School {
   const [id, name, lon, lat] = row;
-  return { id, name, lon:str2float(lon), lat: str2float(lat) };
+  return { id, name, lon: str2float(lon), lat: str2float(lat) };
 }
 
 function parseEmployeeCsvRow(row: string[]): Employee {
