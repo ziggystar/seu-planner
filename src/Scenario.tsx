@@ -1,4 +1,4 @@
-import { Alert, Button, Grid, Snackbar } from '@mui/material';
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, InputLabel, MenuItem, Select, Snackbar } from '@mui/material';
 import './Scenario.css';
 import { DataGrid } from '@mui/x-data-grid';
 import { useLocalStorage } from 'usehooks-ts';
@@ -24,6 +24,7 @@ export type Scenario = {
     kidsPerSchool: [string, number][],
     minKidsPerEmployee: [string, number][],
     maxKidsPerEmployee: [string, number][],
+    preAssignedSchoolToEmployee: [string, string][],
     optimzationResult: Assignment[] | undefined
 }
 
@@ -43,6 +44,8 @@ export function ScenarioManager(props: {
     const kidsPerSchool = new Map(_kidsPerSchool)
     const [_kidsPerEmployee, setkidsPerEmployee] = useLocalStorage<[string, { min: number, max: number }][]>(`scenario.${props.selectedScenarioId}.kidsPerEmployee`, []);
     const kidsPerEmployee = new Map(_kidsPerEmployee);
+    const [preAssignedSchoolToEmployee, setPreAssignedSchoolToEmployee] = useLocalStorage<[string, string][]>(`scenario.${props.selectedScenarioId}.preAssignedSchoolToEmployee`, []);
+
 
     //set only non-zero rows
     const cbReadSchools = function (rows: string[][]) {
@@ -62,6 +65,35 @@ export function ScenarioManager(props: {
     const nMinKidsArzt = props.employees.filter((e) => e.type === 'Arzt').map(e => kidsPerEmployee.get(e.id)?.min || 0).reduce((acc, cur) => acc + cur, 0);
     const nMaxKidsArzt = props.employees.filter((e) => e.type === "Arzt").map(e => kidsPerEmployee.get(e.id)?.max || 0).reduce((acc, cur) => acc + cur, 0);
     const nTotalKidsSchools = props.schools.map(s => kidsPerSchool.get(s[0]) || 0).reduce((acc, cur) => acc + cur, 0);
+
+    const cbAddPreAssigned = function (schoolId: string, employeeId: string) {
+        setPreAssignedSchoolToEmployee([...preAssignedSchoolToEmployee, [schoolId, employeeId]]);
+        setMessage(`Schule '${schoolId}' an Mitarbeiter '${employeeId}' zugewiesen`)
+    }
+    const cbClearPreAssigned = function (schoolId: string, employeeId: string) {
+        setPreAssignedSchoolToEmployee(preAssignedSchoolToEmployee.filter(([s, e]) => s !== schoolId || e !== employeeId));
+        setMessage(`Zuweisung Schule '${schoolId}' an Mitarbeiter '${employeeId}' gelöscht`)
+    }
+
+    //for add preassignment dialog
+    const [open, setOpen] = useState(false);
+    const [selectedSchool, setSelectedSchool] = useState('');
+    const [selectedEmployee, setSelectedEmployee] = useState('');
+
+    // Add these functions to your component
+    const handleClickOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    const handleAddPreAssignment = () => {
+        cbAddPreAssigned(selectedSchool, selectedEmployee);
+        setOpen(false);
+    };
+
     return (<>
         <Snackbar
             anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
@@ -89,6 +121,7 @@ export function ScenarioManager(props: {
                         kidsPerSchool: [],
                         minKidsPerEmployee: [],
                         maxKidsPerEmployee: [],
+                        preAssignedSchoolToEmployee: [],
                         optimzationResult: undefined
                     }
                     props.setScenarios([...props.scenarios, newScenario]);
@@ -171,6 +204,58 @@ export function ScenarioManager(props: {
                         asCSV={{ data: props.employees.map(e => [e.id, (kidsPerEmployee.get(e.id)?.min || 0).toString(), (kidsPerEmployee.get(e.id)?.max || 0).toString()]), name: `personal-${props.selectedScenarioId}.csv` }}
                         settings={props.settings}
                     />
+                </Grid>
+                <Grid item xs={6}>
+                    <Button variant="contained" color="primary" onClick={handleClickOpen}>
+                        Neue Zuweisung
+                    </Button>
+                    <Dialog open={open} onClose={handleClose}>
+                        <DialogTitle>Neue Zuweisung</DialogTitle>
+                        <DialogContent>
+                            <FormControl fullWidth>
+                                <InputLabel>Schule</InputLabel>
+                                <Select value={selectedSchool} onChange={(event) => setSelectedSchool(event.target.value)}>
+                                    {props.schools.map((school) => (
+                                        <MenuItem value={school[0]}>{school[1]}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            <FormControl fullWidth>
+                                <InputLabel>Mitarbeiter</InputLabel>
+                                <Select value={selectedEmployee} onChange={(event) => setSelectedEmployee(event.target.value)}>
+                                    {props.employees.map((employee) => (
+                                        <MenuItem value={employee.id}>{employee.name}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleClose}>Abbrechen</Button>
+                            <Button onClick={handleAddPreAssignment}>Hinzufügen</Button>
+                        </DialogActions>
+                    </Dialog>
+                    <TableContainer>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Schule</TableCell>
+                                    <TableCell>Mitarbeiter</TableCell>
+                                    <TableCell></TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {
+                                    preAssignedSchoolToEmployee.map(([schoolId, employeeId]) => (
+                                        <TableRow key={schoolId + employeeId}>
+                                            <TableCell>{props.schools.find(s => s[0] === schoolId)?.[1] || schoolId}</TableCell>
+                                            <TableCell>{props.employees.find(e => e.id === employeeId)?.name || employeeId}</TableCell>
+                                            <TableCell><Button onClick={() => cbClearPreAssigned(schoolId, employeeId)}>Löschen</Button></TableCell>
+                                        </TableRow>
+                                    ))
+                                }
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
                 </Grid>
             </>
             }

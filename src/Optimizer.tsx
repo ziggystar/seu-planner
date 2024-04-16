@@ -11,6 +11,7 @@ export function Optimizer(props: {
     selectedScenarioId: string | undefined,
     schools: { master: School, children: number }[],
     employees: { master: Employee, minChildren: number, maxChildren: number }[],
+    preAssigned: [School,Employee][],
     distances: number[][],
     modelType: ModelType
 }) {
@@ -83,12 +84,19 @@ export function Optimizer(props: {
                             vars: props.schools.map((s) => ({ name: makeVar(s, e), coef: 1 })),
                             bnds: e.minChildren < e.maxChildren ? { type: glpk.GLP_DB, lb: e.minChildren, ub: e.maxChildren } : { type: glpk.GLP_FX, lb: e.minChildren, ub: e.minChildren }
                         }))
+                    ).concat(
+                        //preassignments are treated as lower bounds
+                        props.preAssigned.map(([s, e]) => ({
+                            name: `preassign_${s.id}_${e.id}`,
+                            vars: [{ name: makeVar(props.schools.find((xs) => xs.master.id === s.id)!, props.employees.find((xe) => xe.master.id === e.id)!), coef: 1 }],
+                            bnds: { type: glpk.GLP_LO, lb: props.schools.find((xs) => xs.master.id === s.id)!.children, ub: 1000000}
+                        }))
                     )
             }
             console.debug("setting problem", problem)
             setProblem(problem)
         }
-    }, [glpk, props.schools, props.employees, props.distances])
+    }, [glpk, props.schools, props.employees, props.distances, props.preAssigned])
 
     const solve = (glpk: GLPK, problem: LP) => {
         console.log("solving", problem);

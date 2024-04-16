@@ -76,6 +76,8 @@ function App() {
 
   const [kidsPerSchool] = useLocalStorage<[string, number][]>(`scenario.${selectedScenarioId}.kidsPerSchool`, [])
   const [kidsPerEmployee] = useLocalStorage<[string, { min: number, max: number }][]>(`scenario.${selectedScenarioId}.kidsPerEmployee`, []);
+  //holds school, employee id tuples
+  const [preAssignedSchoolToEmployee] = useLocalStorage<[string, string][]>(`scenario.${selectedScenarioId}.preAssignedSchoolToEmployee`, []);
 
   return (
     <div className="App">
@@ -132,6 +134,7 @@ function App() {
                 /* we need to include all items from the master arrays, because the distance matrix is based on them */
                 schools={schools.map((s) => ({ master: s, children: kidsPerSchool.find((sm) => sm[0] === s.id)?.[1] ?? 0 }))}
                 employees={personnel.map((e) => ({ master: e, minChildren: kidsPerEmployee.find((em) => em[0] === e.id)?.[1].min ?? 0, maxChildren: kidsPerEmployee.find((em) => em[0] === e.id)?.[1].max ?? 0 }))}
+                preAssigned={preAssignedSchoolToEmployee.map(([s, e]) => [schools.find((sc) => sc.id === s)!, personnel.find((em) => em.id === e)!])}
                 distances={distances.data} 
                 modelType={settings.modelType}/>) ||
             (tab === 5 &&
