@@ -80,9 +80,12 @@ export function DistanceComp(props: {
             props.setDistances(newDistances);
     }
 
+    const csvData = [""].concat(props.d2.map(s => s[0])).join(";") + "\n" + props.d1.map((p, id1) => p[0] + ";" + props.d2.map((s, id2) => Math.round((props.data.data.at(id1)?.at(id2) ?? 0)/100)/10).join(";")).join("\n");
+    const csvURL = window.URL.createObjectURL(new Blob([csvData], {type: 'text/csv'}));
     return <div className='tab-distances'>
         <Button variant="contained" onClick={calcDirect}>Berechne Luftlinie</Button>
         <Button variant="contained" onClick={calculateWithORS} disabled={props.orsApiKey === undefined}>OpenRoute Service</Button>
+        <Button href={csvURL} download={"seu-distances.csv"}>Download</Button>
         <table>
             <thead>
                 <tr>
