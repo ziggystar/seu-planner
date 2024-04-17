@@ -136,7 +136,7 @@ function App() {
                 employees={personnel.map((e) => ({ master: e, minChildren: kidsPerEmployee.find((em) => em[0] === e.id)?.[1].min ?? 0, maxChildren: kidsPerEmployee.find((em) => em[0] === e.id)?.[1].max ?? 0 }))}
                 preAssigned={preAssignedSchoolToEmployee.map(([s, e]) => [schools.find((sc) => sc.id === s)!, personnel.find((em) => em.id === e)!])}
                 distances={distances.data} 
-                modelType={settings.modelType}/>) ||
+                settings={settings}/>) ||
             (tab === 5 &&
               <SettingsEditor settings={settings} setSettings={setSettings}/>)
           }

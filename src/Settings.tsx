@@ -41,7 +41,7 @@ export function SettingsEditor({ settings, setSettings }: SettingsProps) {
                 />
             </Grid>
             <Grid container item xs={12}>
-                <Select disabled={true} label="Modell" value={settings.modelType} onChange={(e) => setSettings({ ...settings, modelType: e.target.value as ModelType })}>
+                <Select label="Modell" value={settings.modelType} onChange={(e) => setSettings({ ...settings, modelType: e.target.value as ModelType })}>
                     <MenuItem value="AssignChildren">Kinder zuweisen</MenuItem>
                     <MenuItem value="AssignSchools">Schulen zuweisen</MenuItem>
                 </Select>
