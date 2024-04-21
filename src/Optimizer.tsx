@@ -187,6 +187,7 @@ export function Optimizer(props: {
 
     //employee table has one row per employee, showing total number of children and average distance per child
     const employeeTable = function (sol: Result, dist: number[][]) {
+        const totalMaxChildren = props.employees.map((e) => e.maxChildren).reduce((a, b) => Math.max(a, b), 0);
         // Prepare the rows data
         const rows = props.employees.map((e, id) => {
             const children = props.schools.map((s, id2) => result(sol, s.master, e.master)).reduce((a, b) => a + b, 0);
@@ -194,17 +195,19 @@ export function Optimizer(props: {
             return {
                 id: e.master.id, // unique id for each row
                 employee: e.master.id,
+                employeeType: e.master.type,
                 minChilren: e.minChildren,
                 maxChildren: e.maxChildren,
                 children: children,
                 avgDistance: (distance / children / 1000).toFixed(1),
-                status: { min: e.minChildren, max: e.maxChildren, children: children }
+                status: { min: e.minChildren, max: e.maxChildren, children: children}
             }
         }).filter((x) => x.children > 0);
 
         // Prepare the columns data
         const columns: GridColDef[] = [
             { field: 'employee', headerName: 'Mitarbeiter', width: 200 },
+            { field: 'employeeType', headerName: 'Typ', width: 200 },
             { field: 'minChilren', headerName: 'Min', width: 100 },
             { field: 'maxChildren', headerName: 'Max', width: 100 },
             { field: 'children', headerName: 'Kinder', width: 100 },
@@ -215,13 +218,35 @@ export function Optimizer(props: {
                 headerName: 'Status',
                 width: 200,
                 renderCell: (params) => {
-                    const status = params.value as { min: number, max: number, children: number };
-                    return <input type="range" min={status.min} max={status.max} value={status.children} disabled={true} />
+                    const status = params.value as { min: number, max: number, children: number, totalMax: number };
+                    return <svg viewBox="-5 -5 310 10" height='10' width='310'>
+                        <marker id="dot" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <circle cx="5" cy="5" r="5" fill="#44b" />
+                        </marker>
+                        <marker id="mark" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <circle cx="5" cy="5" r="5" fill="#f44" />
+                        </marker>
+                        <polyline
+                            points={`${status.min/totalMaxChildren * 300},0 ${status.children/totalMaxChildren * 300},0 ${status.max / totalMaxChildren * 300},0`}
+                            fill="none" stroke="black" stroke-width="2"
+                            markerStart='url(#dot)'
+                            markerMid='url(#mark)'
+                            markerEnd='url(#dot)'
+                            />
+                    </svg>
                 }
             }
         ];
 
-        return <DataGrid rows={rows} columns={columns} slots={{ toolbar: GridToolbar }} rowSelection={false} />
+        return <DataGrid 
+                rows={rows} 
+                columns={columns} 
+                slots={{ toolbar: GridToolbar }} 
+                rowSelection={false} 
+                getRowClassName={(params) => {
+                        return params.row.employeeType === 'Arzt' ? 'arzt-row' : 'assistent-row';
+                }}
+                />
     }
 
     return <Grid container>
@@ -269,6 +294,15 @@ export function Optimizer(props: {
                         center: [9.2, 50.2],
                         scale: 50000
                     }}>
+                        <marker id="m-arzt" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <circle cx="5" cy="5" r="4" fill="#44b" />
+                        </marker>
+                        <marker id="m-assistent" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <circle cx="5" cy="5" r="4" fill="#4b4" />
+                        </marker>
+                        <marker id="m-school" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <circle cx="5" cy="5" r="3" fill="#f44" />
+                        </marker>
                     <Geographies geography={"res/gemeinden_simplify20.topojson"}>
                         {({ geographies }) =>
                             geographies.map((geo) => {
@@ -283,7 +317,7 @@ export function Optimizer(props: {
                             .filter((r) => r.val > 0)
                             .map((r) => {
                                 console.log(r)
-                                return <Line strokeWidth={1} color={r.e.master.type === "Arzt" ? "#a559" : "#55a9"} key={`${r.s.master.id}_${r.e.master.id}`} from={[r.e.master.lon, r.e.master.lat]} to={[r.s.master.lon, r.s.master.lat]} />
+                                return <Line markerStart={r.e.master.type === "Arzt" ? 'url("#m-arzt")' : 'url("#m-assistent")'} markerEnd='url("#m-school")' strokeWidth={1} color={r.e.master.type === "Arzt" ? "#a559" : "#55a9"} key={`${r.s.master.id}_${r.e.master.id}`} from={[r.e.master.lon, r.e.master.lat]} to={[r.s.master.lon, r.s.master.lat]} />
                             }
                             )
                     }

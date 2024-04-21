@@ -11,3 +11,11 @@
   font-size: 10pt;
   color: white;
 }
+
+.arzt-row {
+  background-color: #f0ffff; /* light gray */
+}
+
+.assistent-row {
+  background-color: #fffff0; /* light blue */
+}
